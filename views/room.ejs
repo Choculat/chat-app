@@ -254,13 +254,14 @@
 
         // Copy room ID to clipboard and show toast
         document.getElementById('room-id').addEventListener('click', () => {
-            const roomId = document.getElementById('room-id').textContent.replace('Room ID: ', '');
+            const roomId = document.getElementById('room-id').textContent.replace('Room ID: ', '').trim();
             navigator.clipboard.writeText(roomId).then(() => {
                 showToast('Room ID copied to clipboard!');
             }).catch(err => {
                 console.error('Error copying to clipboard: ', err);
             });
         });
+
 
         // Show toast notification
         function showToast(message) {

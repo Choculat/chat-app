@@ -74,6 +74,7 @@ app.get('/room/:token', (req, res) => {
 });
 
 // Join a private room by entering room ID
+// Join a private room by entering room ID
 app.post('/join-private-room', (req, res) => {
     const roomToken = req.body.roomId; // Assuming you get roomId from the user input
     if (!rooms[roomToken] || !rooms[roomToken].isPrivate) {
@@ -87,8 +88,10 @@ app.post('/join-private-room', (req, res) => {
             errorMessage: 'Private room not found or invalid Room ID!'
         });
     }
+    // Redirect to the room page after validation
     res.redirect(`/room/${roomToken}`);
 });
+
 
 
 io.on('connection', (socket) => {
