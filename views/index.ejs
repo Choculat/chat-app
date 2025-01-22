@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Rooms</title>
+    <style>
+        /* Dark theme */
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+
+        .container {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .privacy-link {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #fff;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        h1 {
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #b3b3b3;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #6200ea;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #3700b3;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #333;
+            color: #e0e0e0;
+        }
+
+        input[type="checkbox"] {
+            margin: 10px 0;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin: 10px 0;
+        }
+
+        a {
+            color: #bb86fc;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Error message styling */
+        .error-message {
+            color: red;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+            max-height: 80vh;
+            /* Limit the height of the modal */
+            position: relative;
+            overflow-y: auto;
+            /* Enable scrolling if content exceeds max-height */
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Chat Rooms</h1>
+
+        <!-- Display error message if any -->
+        <% if (typeof errorMessage !=='undefined' ) { %>
+            <div class="error-message">
+                <%= errorMessage %>
+            </div>
+            <% } %>
+
+                <!-- Privacy link -->
+                <span class="privacy-link" onclick="openModal()">Privacy</span>
+
+                <!-- Form to create a new room -->
+                <form action="/create-room" method="POST">
+                    <label for="isPrivate">Private Room:
+                        <input type="checkbox" name="isPrivate" id="isPrivate"></label>
+                    <button type="submit">Create Room</button>
+                </form>
+
+                <h2>Public Rooms:</h2>
+                <ul id="roomList">
+                    <% rooms.forEach(room=> { %>
+                        <li data-users="<%= room.usersCount %>">
+                            <a href="/room/<%= room.token %>">
+                                Room: <%= room.token %> | Users: <%= room.usersCount %>
+                            </a>
+                        </li>
+                        <% }); %>
+                </ul>
+
+                <!-- Form to join a private room -->
+                <form action="/join-private-room" method="POST">
+                    <label for="room-id">Enter Room ID to join a Private Room:</label>
+                    <input type="text" id="room-id" name="roomId" required>
+                    <button type="submit">Join Room</button>
+                </form>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="privacyModal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2>Privacy Information</h2>
+            <p>
+            <p>
+                <strong>Privacy Notice</strong><br><br>
+
+                Please be aware that this chat server may involve the creation of private rooms and interactions with
+                other users. Any private room you join is at your own discretion, and the server owner is not
+                responsible for any content shared within private or public rooms. The rooms listed here are filtered to
+                show only public ones; however, private rooms are also available, and access to these may require
+                additional steps.<br><br>
+
+                <strong>Important:</strong> Nothing published, shared, or discussed on this server is the responsibility
+                of the server owner. Users are solely responsible for their actions, content, and communication within
+                the chat rooms.<br><br>
+
+                By using this chat server, you agree to adhere to these privacy terms. Please ensure that you understand
+                the nature of private and public interactions, and exercise caution when sharing personal or sensitive
+                information.<br><br>
+
+                <strong>Why Using This Chat Service is Private</strong><br><br>
+
+                <strong>Temporary Data Storage (RAM-Based):</strong><br>
+                All chat room data, such as user information and messages, are stored in the server's memory (RAM)
+                temporarily. As a result, no data is permanently saved to a database, meaning there is no lasting record
+                of your activity once the server is shut down or the room is deleted.<br><br>
+
+                <strong>No Persistent User Data:</strong><br>
+                In your code, user data is generated dynamically (e.g., random usernames created from a list of words)
+                and stored in RAM. This means that users don’t need to register, login, or provide any personal details.
+                Once the server is restarted, all data, including the user lists and chat history, are wiped out and
+                cannot be retrieved.<br><br>
+
+                <strong>Private Room Accessibility:</strong><br>
+                Users can create private rooms by marking a room as "private" in the form. Private rooms are protected
+                from public listing and are only accessible through a room ID provided by the room creator. This adds a
+                layer of privacy to the conversation, ensuring that only those with the correct ID can enter the
+                room.<br><br>
+
+                <strong>No Logging of Personal Information:</strong><br>
+                The service does not store sensitive information such as real names, email addresses, or IP addresses in
+                a persistent manner. The server only stores users’ IP addresses temporarily, which are used for session
+                management, but these do not leave any long-term record.<br><br>
+
+                <strong>Room Deletion After User Exit:</strong><br>
+                When a user disconnects from a room, if no other users are left, the room is deleted from the server’s
+                memory. This ensures that once a chat session is over, the associated data is also cleared, further
+                enhancing the privacy of users.<br><br>
+
+                <strong>Data Not Shared or Stored Elsewhere:</strong><br>
+                There is no external storage or database involved. The server operates solely in-memory, and nothing is
+                published or stored on external platforms or saved in a permanent database. This means users can use the
+                service knowing that their data is not shared with third-party services.
+            </p>
+
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function openModal() {
+            document.getElementById("privacyModal").style.display = "flex";
+        }
+
+        function closeModal(event) {
+            if (event) {
+                event.stopPropagation(); // Prevent closing when clicking inside the modal content
+            }
+            document.getElementById("privacyModal").style.display = "none";
+        }
+
+        // Sort the rooms by the number of users
+        window.onload = function () {
+            const roomList = document.getElementById('roomList');
+            const rooms = Array.from(roomList.children);
+
+            rooms.sort((a, b) => {
+                const aUsers = parseInt(a.getAttribute('data-users'));
+                const bUsers = parseInt(b.getAttribute('data-users'));
+                return bUsers - aUsers; // Sort descending by number of users
+            });
+
+            // Append the sorted rooms back to the list
+            rooms.forEach(room => roomList.appendChild(room));
+        };
+    </script>
+</body>
+
+</html>

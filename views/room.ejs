@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room - <%= token %>
+    </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #121212;
+            color: #e0e0e0;
+            flex-direction: column;
+            /* Stack elements vertically */
+        }
+
+        .chat-container,
+        .user-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 80%;
+            max-width: 800px;
+            background-color: #1f1f1f;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            height: 80%;
+            padding: 20px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            /* Add space between chat and user containers */
+        }
+
+        #room-id {
+            font-size: 20px;
+            font-weight: bold;
+            color: #bb86fc;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        #chat-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 10px;
+        }
+
+        #messages {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 80%;
+            word-wrap: break-word;
+            display: inline-block;
+            clear: both;
+        }
+
+        .message-you {
+            color: white;
+            text-align: right;
+            float: right;
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+
+        .message-other {
+            color: #e0e0e0;
+            text-align: left;
+            float: left;
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+
+        #message-input-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        #message-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background-color: #333;
+            color: #e0e0e0;
+        }
+
+        #user-list {
+            padding: 20px;
+            background-color: #2b2b2b;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #user-list ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #user-list li {
+            margin-bottom: 10px;
+        }
+
+        #back-button {
+            padding: 10px 20px;
+            background-color: #333;
+            color: #e0e0e0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        #back-button:hover {
+            background-color: #555;
+        }
+
+        /* Toast styles */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: #e0e0e0;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .toast.show {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Media Query for small screens */
+        @media (max-width: 768px) {
+
+            .chat-container,
+            .user-container {
+                width: 100%;
+                /* Make containers take full width */
+                max-width: 100%;
+                margin-bottom: 20px;
+                /* Ensure spacing between them */
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="chat-container">
+        <button id="back-button" onclick="window.location.href='/';">Back to List</button>
+
+        <!-- Display Room ID -->
+        <div id="room-id">Room ID: <%= token %>
+        </div>
+
+        <div id="chat-content">
+            <ul id="messages"></ul>
+        </div>
+
+        <div id="message-input-container">
+            <input id="message-input" type="text" placeholder="Type your message..." />
+        </div>
+    </div>
+    <div class="user-container">
+        <div id="user-list">
+            <h3>Connected Users</h3>
+            <ul id="users"></ul>
+        </div>
+    </div>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Room ID copied to clipboard!</div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        // Join the room using the token from the URL
+        const roomToken = "<%= token %>";
+        socket.emit('join-room', roomToken);
+
+        // Handle connected users
+        socket.on('user-list', (users) => {
+            const userList = document.getElementById('users');
+            userList.innerHTML = ''; // Clear the list
+            users.forEach(user => {
+                const userItem = document.createElement('li');
+                userItem.textContent = `User: ${user.name} (IP: ${user.ip})`;
+                userList.appendChild(userItem);
+            });
+        });
+
+        // Display new chat messages
+        socket.on('chat-message', (data) => {
+            const msgItem = document.createElement('li');
+            msgItem.classList.add('message');
+            if (data.id === socket.id) {
+                msgItem.classList.add('message-you');
+                msgItem.textContent = `You: ${data.msg}`;
+            } else {
+                msgItem.classList.add('message-other');
+                msgItem.textContent = `${data.name}: ${data.msg}`;
+            }
+            document.getElementById('messages').appendChild(msgItem);
+            window.scrollTo(0, document.body.scrollHeight); // Auto scroll down to the latest message
+        });
+
+        // Send message when the user presses "Enter" or "Space" key
+        document.getElementById('message-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                const message = document.getElementById('message-input').value;
+                if (message.trim()) {
+                    socket.emit('chat-message', message, roomToken);
+                    document.getElementById('message-input').value = ''; // Clear input field
+                }
+            }
+        });
+
+        // Listen for new users connecting
+        socket.on('user-connected', (user) => {
+            console.log(`User connected: ${user.name}`);
+        });
+
+        // Listen for users disconnecting
+        socket.on('user-disconnected', (userId) => {
+            console.log(`User disconnected: ${userId}`);
+        });
+
+        // Copy room ID to clipboard and show toast
+        document.getElementById('room-id').addEventListener('click', () => {
+            const roomId = document.getElementById('room-id').textContent.replace('Room ID: ', '');
+            navigator.clipboard.writeText(roomId).then(() => {
+                showToast('Room ID copied to clipboard!');
+            }).catch(err => {
+                console.error('Error copying to clipboard: ', err);
+            });
+        });
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000); // Hide the toast after 3 seconds
+        }
+    </script>
+</body>
+
+</html>
