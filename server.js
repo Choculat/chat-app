@@ -92,7 +92,10 @@ app.post('/join-private-room', (req, res) => {
 
 
 io.on('connection', (socket) => {
-    const ip = socket.request.connection.remoteAddress; // Get user IP
+    // Get the user's IP address from the X-Forwarded-For header if it's available.
+    // Otherwise, fallback to the connection's remote address.
+    const ip = socket.request.headers['x-forwarded-for'] || socket.request.connection.remoteAddress;
+
     const userName = generateRandomName(); // Generate random user name
     let currentRoom = null;
 
@@ -142,6 +145,7 @@ io.on('connection', (socket) => {
         }
     });
 });
+
 
 // Start the server
 server.listen(3000, () => {

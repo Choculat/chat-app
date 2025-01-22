@@ -233,7 +233,7 @@
 
         // Send message when the user presses "Enter" or "Space" key
         document.getElementById('message-input').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
+            if (e.key === 'Enter') {
                 const message = document.getElementById('message-input').value;
                 if (message.trim()) {
                     socket.emit('chat-message', message, roomToken);
